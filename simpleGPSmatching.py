@@ -1,10 +1,10 @@
 import pandas as pd
 import math
 import numpy as np
-from numba import jit, njit
+from numba import jit, njit, prange
 import time 
 
-@jit(nopython=True)
+@jit(nopython=True, cache=True)
 def haversine(lat1, lon1, lat2, lon2):
     R = 6372800  # Earth radius in meters
 
@@ -25,7 +25,7 @@ def equirectangular_distance_approximation(lat1, lon1, lat2, lon2):
     return deglen*math.sqrt(x*x + y*y)
 
 
-@njit
+@njit(cache=True)
 def find(table, radius=50):
     # Get trajectories of first user
     mark = np.zeros((table.shape[1]))
@@ -45,7 +45,7 @@ def find(table, radius=50):
                 # Mark as infected
                 if dist < radius:
                     if mark[y]==1:
-                        print("Trace ",y," overlaps with infected at Long / Lat: ",table[x,y,0],table[x,y,1])
+                        #print("Trace ",y," overlaps with infected at Long / Lat: ",table[x,y,0],table[x,y,1])
                         suspected += 1
                     else:
                         mark[y] = 1
