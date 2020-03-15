@@ -17,25 +17,42 @@ def haversine(lat1, lon1, lat2, lon2):
     
     return 2*R*math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
+@jit(nopython=True)
+def equirectangular_distance_approximation(lat1, lon1, lat2, lon2):
+    deglen = 110250.
+    x = lat1 - lat2
+    y = (lon1 - lon2)*math.cos(lat2)
+    return deglen*math.sqrt(x*x + y*y)
+
 
 @njit
 def find(table, radius=50):
-	# Get trajectories of first user
-	mark = np.zeros((table.shape[1]))
-	suspected = 0
-	for x in range(table.shape[0]):
-		for y in range(table.shape[1]):
-			if y > 0:
-				dist = haversine(table[x,y,0], table[x,y,1], table[x,0,0], table[x,0,1])
-				if dist < radius and table[x,y,0] != 0 and table[x,0,0] != 0:
-					if mark[y]==1:
-						print("Trace ",y," overlaps with infected at Long / Lat: ",table[x,y,0],table[x,y,1])
-						suspected = suspected+1
-					else:
-						mark[y] = 1
-				else:
-					mark[y] = 0
-	print(table.shape[0], table.shape[1], suspected)
+    # Get trajectories of first user
+    mark = np.zeros((table.shape[1]))
+    suspected = 0
+    for x in range(table.shape[0]):  # timesteps
+        for y in range(table.shape[1]):  # users
+            if y > 0:
+
+                # Skip if user is missing GPS data 
+                if table[x,y,0] == 0:
+                    mark[y] = 0
+                    continue
+
+                # Compute distance
+                dist = haversine(table[x,y,0], table[x,y,1], table[x,0,0], table[x,0,1])
+                
+                # Mark as infected
+                if dist < radius:
+                    if mark[y]==1:
+                        print("Trace ",y," overlaps with infected at Long / Lat: ",table[x,y,0],table[x,y,1])
+                        suspected += 1
+                    else:
+                        mark[y] = 1
+                else:
+                    mark[y] = 0
+
+    print(table.shape[0], table.shape[1], suspected)
 
 
 print("Loading matrix.npy")
