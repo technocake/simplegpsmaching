@@ -2,9 +2,11 @@ import pandas as pd
 import os
 import math
 import numpy as np
+from numba import jit
+import time 
 
 
-
+#@jit(nopython=True)
 def haversine(lat1,lon1,lat2,lon2):
     R = 6372800  # Earth radius in meters
 
@@ -17,6 +19,25 @@ def haversine(lat1,lon1,lat2,lon2):
         math.cos(phi1)*math.cos(phi2)*math.sin(dlambda/2)**2
     
     return 2*R*math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+#@jit(nopython=True)
+def find(traces,timesteps,table):
+	# Get trajectories of first user
+	mark = np.zeros((traces))
+	suspected=0
+	for x in range(timesteps):
+		for y in range(traces):
+			if y > 0:
+				dist = haversine(table[x,y,0],table[x,y,1],table[x,0,0],table[x,0,1])
+				if dist < 500 and table[x,y,0]!= 0 and table[x,0,0] != 0:
+					if mark[y]==1:
+						print("Trace ",y," overlaps with infected at Long / Lat: ",table[x,y,0],table[x,y,1])
+						suspected=suspected+1
+					else:
+						mark[y]=1
+				else:
+					mark[y]=0
+	print(timesteps, traces,suspected)
 
 
 
@@ -60,23 +81,10 @@ traces = traces - 1
 			
 
 #table = load_trajectories()
-
-# Get trajectories of first user
-
-suspected=0
-for y in range(traces):
-	if y > 0:
-		for x in range(timesteps):
-			dist = haversine(table[x,y,0],table[x,y,1],table[x,0,0],table[x,0,1])
-			if dist < 50 and table[x,y,0]!= 0 and table[x,0,0] != 0:
-				print("Trace ",y," overlaps with infected at Long / Lat: ",table[x,y,0],table[x,y,1])
-				suspected=suspected+1
-  
-
-print(timesteps, traces,suspected)
+t1 = time.time()
+find(traces,timesteps,table)
+print("Time: ",time.time()-t1)
 
 
 
-
-
-from IPython import embed; embed()
+#from IPython import embed; embed()
