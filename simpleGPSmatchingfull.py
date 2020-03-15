@@ -4,7 +4,7 @@ import math
 import numpy as np
 from numba import jit
 import time 
-
+from fileread import load_trajectories,create_time_slots
 
 #@jit(nopython=True)
 def haversine(lat1,lon1,lat2,lon2):
@@ -41,36 +41,27 @@ def find(traces,timesteps,table):
 
 
 
-data_dir="Data/"
-
 	#user_df_map = {}
 timesteps = 7200
 traces = 20000
 table = np.zeros((timesteps, traces, 2))
 currenttrace=0
-	# Loop over all data subdirectories
-for subdir, dirs, files in os.walk(data_dir):
-
-	# Loop over all plt files
-	for file in files:
-		if not file.endswith(".plt"):
-			continue
-
-		# Convert plt files to pandas frame
-		df = pd.read_csv(os.path.join(subdir, file), sep=',', 
-			             skiprows=[0,1,2,3,4,5], usecols=[0,1,6],
-			             names=["Longitude", "Latitude", "Time"], header=None)
 
 
-		for x in range(df.shape[0]):
-			timestep = t(x)
-			if table[timestep,currenttrace,0]!=0:
-				table[timestep,traces,0]=df.values[x,0]
-				table[timestep,traces,1]=df.values[x,1]
-		currenttrace = currenttrace + 1
-		if currenttrace > traces:
-			traces=traces+1
-			table.resize((timesteps, traces, 2))
+trajectories = load_trajectories()
+trajectories = create_time_slots(trajectories)
+
+trajectories[]
+for x in range():
+	for x in range(df.shape[0]):
+		timestep = t(x)
+		if table[timestep,currenttrace,0]!=0:
+			table[timestep,traces,0]=df.values[x,0]
+			table[timestep,traces,1]=df.values[x,1]
+	currenttrace = currenttrace + 1
+	if currenttrace > traces:
+		traces=traces+1
+		table.resize((timesteps, traces, 2))
 
 
 

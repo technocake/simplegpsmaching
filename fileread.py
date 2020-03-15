@@ -2,6 +2,7 @@ import pandas as pd
 import os
 
 
+
 def load_trajectories(data_dir="Data/"):
 
     id_counter = 0
@@ -44,9 +45,9 @@ def create_time_slots(trajectories, slot_size=60):
     return trajectories
 
 
-trajectories = load_trajectories()
-trajectories = create_time_slots(trajectories)
-# Get trajectories of first user
-#trajectories[0]
+# trajectories = load_trajectories()
+# trajectories = create_time_slots(trajectories)
+# # Get trajectories of first user
+# #trajectories[0]
 
-from IPython import embed; embed()
+# from IPython import embed; embed()
