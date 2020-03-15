@@ -27,8 +27,25 @@ def load_trajectories(data_dir="Data/"):
     return trajectories
             
 
-trajectories = load_trajectories()
+def create_time_slots(trajectories, slot_size=60):
+    """ Replaces the time column and  """
 
+    def time_to_slot(row):
+        h, m, s = map(int, row["Time"].split(':'))
+        slot = round((h*3600+m*60+s)/slot_size)
+        return slot
+
+    for i, t in trajectories.items():
+        t["Slot"] = t.apply(time_to_slot, axis=1)
+        t = t.drop_duplicates("Slot")
+        t = t.set_index("Slot")
+        trajectories[i] = t
+        
+    return trajectories
+
+
+trajectories = load_trajectories()
+trajectories = create_time_slots(trajectories)
 # Get trajectories of first user
 #trajectories[0]
 
