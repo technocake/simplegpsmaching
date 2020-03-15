@@ -1,6 +1,7 @@
 import pandas as pd
 import os
-
+import math
+import numpy as np
 
 
 def load_trajectories(data_dir="Data/"):
@@ -28,26 +29,41 @@ def load_trajectories(data_dir="Data/"):
     return trajectories
             
 
-def create_time_slots(trajectories, slot_size=60):
+def create_timesteps(trajectories, timestep_size=60):
     """ Replaces the time column and  """
 
-    def time_to_slot(row):
+    def time_to_timestep(row):
         h, m, s = map(int, row["Time"].split(':'))
-        slot = round((h*3600+m*60+s)/slot_size)
-        return slot
+        timestep = round((h*3600+m*60+s)/timestep_size)
+        return timestep
 
     for i, t in trajectories.items():
-        t["Slot"] = t.apply(time_to_slot, axis=1)
-        t = t.drop_duplicates("Slot")
-        t = t.set_index("Slot")
+        t["Timestep"] = t.apply(time_to_timestep, axis=1)
+        t = t.drop_duplicates("Timestep")
+        t = t.set_index("Timestep")
         trajectories[i] = t
         
     return trajectories
 
 
-# trajectories = load_trajectories()
-# trajectories = create_time_slots(trajectories)
-# # Get trajectories of first user
-# #trajectories[0]
+def save_numpy_matrix(trajectories, filename="matrix.npy"):
+    # Allocate matrix
+    timesteps = math.ceil(24*60*60/timestep_size) + 1
+    traces = len(trajectories.keys())
+    table = np.zeros((timesteps, traces, 2))
 
-# from IPython import embed; embed()
+    for user_id, df in trajectories.items():
+        for timestep, row in df.iterrows():
+            table[timestep, user_id, 0] = row["Latitude"]
+            table[timestep, user_id, 1] = row["Longitude"]
+
+    np.save(filename, table, allow_pickle=True, fix_imports=False)
+
+
+# Load and save data
+timestep_size = 60  # in seconds
+
+trajectories = load_trajectories()
+trajectories = create_timesteps(trajectories, timestep_size)
+save_numpy_matrix(trajectories)
+print("Saved data in matrix.npy")
