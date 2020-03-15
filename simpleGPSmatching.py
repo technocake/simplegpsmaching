@@ -17,7 +17,8 @@ def haversine(lat1, lon1, lat2, lon2):
     
     return 2*R*math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
-@njit(nopython=True)
+
+@njit
 def find(table, radius=50):
 	# Get trajectories of first user
 	mark = np.zeros((table.shape[1]))
