@@ -32,6 +32,38 @@ def checkcontact(i,j,rowlist,cg,row):
 			edge=cg.get_eid(u,v,error=False)
 		cg.es[edge]["time"]=row;
 
+def checkcontact_merge(i,j,rowlist,cg,row,table):
+	u = rowlist[i][2]
+	v = rowlist[j][2]	
+	length1=0
+	length2=0
+	for x in range(4):
+		length1+= haversine(table[row+x][u][0],rowlist[row+x][u][1],rowlist[row+x+1][u][0],rowlist[row+x+1][u][1])
+		length2+= haversine(table[row+x][v][0],rowlist[row+x][v][1],rowlist[row+x+1][v][0],rowlist[row+x+1][v][1])
+	xydist = np.zeros(5,5)
+	for x in range(5):
+		for y in range(5):	
+			xydist[x][y] = haversine(rowlist[row+x][u][0],rowlist[row+x][u][1],rowlist[row+x][v][0],rowlist[row+x][v][1])
+	Aij = np.zeros(5,5)
+	Bij = np.zeros(5,5)
+	for x in range(5):
+		Aij[x,0]=length1+haversine(table[row][u][0],table[row][u][1],table[row+x][v][0],table[row+x][v][1])
+		Bij[0,x]=length2+haversine(table[row+x][u][0],table[row+x][u][1],table[row][v][0],table[row][v][1])
+
+	for x in range(4):
+		for y in range(5):
+			Aij[x+1,y]=min(Aij[y,x]+haversine(table[row+x][u][0],table[row+x][u][1],table[row+x+1][u][0],table[row+x+1][u][1],Bij[y,x]+haversine(table[row+y][v][0],table[row+y][v][1],table[row+x+1][u][0],table[row+x+1][u][1])
+			Bij[x+1,y]=min(Aij[x,y]+haversine(table[row+y][v][0],table[row+y][v][1],table[row+x+1][u][0],table[row+x+1][u][1],Bij[x,y]+haversine(table[row+y-1][v][0],table[row+y-1][v][1],table[row+y][v][0],table[row+y][v][1])
+	length12 = min(Aij[4,4],Bij[4,4])
+	dist=(length12/(length1+length2))-1
+	if dist < 5:
+		u = rowlist[i][2]
+		v = rowlist[j][2]
+		edge = cg.get_eid(u,v,error=False)
+		if edge==-1:
+			cg.add_edge(u,v)
+			edge=cg.get_eid(u,v,error=False)
+		cg.es[edge]["time"]=row;
 
 def processrow(table,row,contactgraph):
 	rowlist=[]
@@ -81,6 +113,11 @@ def sampleinfections(people,runs,cg,infectlimit):
 		average+=runaverage
 	return average/runs
 
+def countinfections(cg,infectlimit):
+	average=0
+	for x in range(cg.vcount()):
+		average+=checkinfectedsilent(x,cg,7200)
+	return average/cg.vcount()
 
 print("Loading matrix.npy")
 table = np.load("matrix.npy")
@@ -104,6 +141,15 @@ checkinfected(10000,cg,7200)
 print("Time: ",time.time()-t1)
 
 
+people=1000
+runs=1000
+
 t1 = time.time()
-print ("Number of infections from 1000 infected at 1000 runs:",sampleinfections(1000,1000,cg,7200))
+s=sampleinfections(people,runs,cg,7200)
+print ("Number of infections from ",people," infected at ",runs," runs:",s,"  (",s/people," per person)")
 print("Time: ",time.time()-t1)
+
+t1 = time.time()
+print ("Average Number of infections from each individual:",countinfections(cg,7200))
+print("Time: ",time.time()-t1)
+
