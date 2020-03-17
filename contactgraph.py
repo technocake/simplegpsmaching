@@ -5,6 +5,7 @@ from numba import jit, njit
 import time 
 #from scipy import sparse
 import igraph
+from random import *
 
 @jit(nopython=True)
 def haversine(lat1, lon1, lat2, lon2):
@@ -63,6 +64,24 @@ def checkinfected(i,cg,infectlimit):
 	return infected
 
 
+def checkinfectedsilent(i,cg,infectlimit):
+	infected = 0
+	for j in cg.neighbors(i):
+		edge = cg.get_eid(i,j)
+		if cg.es[edge]["time"] < infectlimit:
+			infected = infected+1
+	return infected
+
+def sampleinfections(people,runs,cg,infectlimit):
+	average=0
+	for x in range(runs):
+		runaverage=0
+		for y in range(people):
+			runaverage+=checkinfectedsilent(randrange(cg.ecount()),cg,7200)
+		average+=runaverage
+	return average/runs
+
+
 print("Loading matrix.npy")
 table = np.load("matrix.npy")
 
@@ -80,6 +99,11 @@ for x in range(table.shape[0]):
 	processrow(table,x,cg)
 print("Time: ",time.time()-t1)
 
-
+t1 = time.time()
 checkinfected(10000,cg,7200)
+print("Time: ",time.time()-t1)
 
+
+t1 = time.time()
+print ("Number of infections from 1000 infected at 1000 runs:",sampleinfections(1000,1000,cg,7200))
+print("Time: ",time.time()-t1)
