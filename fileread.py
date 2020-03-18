@@ -19,7 +19,7 @@ def load_trajectories(data_dir="Data/"):
             if not file.endswith(".plt"):
                 continue
 
-            user_map_file.write(f"{file}, {id_counter}\n")
+            user_map_file.write(f"{os.path.join(subdir, file)}, {id_counter}\n")
 
 
             # Convert plt files to Panda frames
