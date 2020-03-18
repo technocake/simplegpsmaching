@@ -9,6 +9,8 @@ def load_trajectories(data_dir="Data/"):
     id_counter = 0
     trajectories = {}
 
+    user_map_file = open("user_id_mapping.csv", "w")
+
     # Loop over all data subdirectories
     for subdir, dirs, files in os.walk(data_dir):
 
@@ -16,6 +18,9 @@ def load_trajectories(data_dir="Data/"):
         for file in files:
             if not file.endswith(".plt"):
                 continue
+
+            user_map_file.write(f"{file}, {id_counter}\n")
+
 
             # Convert plt files to Panda frames
             df = pd.read_csv(os.path.join(subdir, file), sep=',', 
@@ -29,7 +34,7 @@ def load_trajectories(data_dir="Data/"):
     return trajectories
             
 
-def create_timesteps(trajectories, timestep_size=60):
+def convert_to_fixed_timesteps(trajectories, timestep_size=60):
     """ Replaces the time column and  """
 
     def time_to_timestep(row):
@@ -64,6 +69,6 @@ def save_numpy_matrix(trajectories, filename="matrix.npy"):
 timestep_size = 60  # in seconds
 
 trajectories = load_trajectories()
-trajectories = create_timesteps(trajectories, timestep_size)
+trajectories = convert_to_fixed_timesteps(trajectories, timestep_size)
 save_numpy_matrix(trajectories)
 print("Saved data in matrix.npy")
