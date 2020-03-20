@@ -1,4 +1,13 @@
-Structure:
+Installation
+============
+
+```
+pip install -r requirements.txt
+```
+
+
+Structure
+=========
 
 
 fileread.py
@@ -30,5 +39,6 @@ Reads the contact graph and peforms analysis
 
 
 
-TODO:
+TODO
+====
 - write function to remove graph edges that represent contacts older than two weeks.
